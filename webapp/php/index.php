@@ -524,9 +524,15 @@ $app->get('/icons/{filename}', function (Request $request, Response $response) {
     }
     
     $filename = $request->getAttribute('filename');
-    $stmt = getPDO()->prepare("SELECT * FROM image WHERE name = ?");
+    $stmt = getPDO(true)->prepare("SELECT * FROM image WHERE name = ?");
     $stmt->execute([$filename]);
     $row = $stmt->fetch();
+
+    if (!$row) {
+      $stmt = getPDO()->prepare("SELECT * FROM image WHERE name = ?");
+      $stmt->execute([$filename]);
+      $row = $stmt->fetch();
+    }
 
     $ext = pathinfo($filename, PATHINFO_EXTENSION);
     $mime = ext2mime($ext);
