@@ -264,14 +264,14 @@ SQL;
     $rows = $stmt->fetchall();
     $res = array_map(function(array $r) {
         return [
-            'id' => $r['id'],
-            'content' => $r['content'],
+            'id' => (int)$r['id'],
             'user' => [
+                'name' => $r['user_name'],
                 'display_name' => $r['user_display_name'],
-                'name' => $r['name'],
-                'avatar_icon' => $r['avatar_icon'],
+                'avatar_icon' => $r['user_avatar_icon'],
             ],
             'date' => $r['date'],
+            'content' => $r['content'],
         ];
     }, $rows);
     $maxMessageId = 0;
