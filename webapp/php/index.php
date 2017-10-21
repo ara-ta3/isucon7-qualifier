@@ -20,6 +20,7 @@ function getPDO($readOnly=false)
     static $pdo = null;
     static $pdo_read_only = null;
 
+    $readOnly = false; # 無効
     if ($readOnly) {
       if (!is_null($pdo_read_only)) {
           return $pdo_read_only;
