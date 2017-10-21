@@ -15,18 +15,28 @@ date_default_timezone_set('Asia/Tokyo');
 define("TWIG_TEMPLATE_FOLDER", realpath(__DIR__) . "/views");
 define("AVATAR_MAX_SIZE", 1 * 1024 * 1024);
 
-function getPDO()
+function getPDO($readOnly=false)
 {
     static $pdo = null;
     if (!is_null($pdo)) {
         return $pdo;
     }
 
-    $host = getenv('ISUBATA_DB_HOST') ?: 'localhost';
-    $port = getenv('ISUBATA_DB_PORT') ?: '3306';
-    $user = getenv('ISUBATA_DB_USER') ?: 'root';
-    $password = getenv('ISUBATA_DB_PASSWORD') ?: '';
-    $dsn = "mysql:host={$host};port={$port};dbname=isubata;charset=utf8mb4";
+    if ($readOnly) {
+      # Slave DB
+      $host = 'localhost';
+      $port = '3306';
+      $user = 'isucon';
+      $password = 'isucon';
+      $dsn = "mysql:host={$host};port={$port};dbname=isubata;charset=utf8mb4";
+    } else {
+      # Master DB
+      $host = getenv('ISUBATA_DB_HOST') ?: 'localhost';
+      $port = getenv('ISUBATA_DB_PORT') ?: '3306';
+      $user = getenv('ISUBATA_DB_USER') ?: 'root';
+      $password = getenv('ISUBATA_DB_PASSWORD') ?: '';
+      $dsn = "mysql:host={$host};port={$port};dbname=isubata;charset=utf8mb4";
+    }
 
     $pdo = new PDO(
         $dsn,
@@ -88,7 +98,7 @@ $loginRequired = function (Request $request, Response $response, $next) use ($co
     $request = $request->withAttribute('user_id', $userId);
     $container['view']->offsetSet('user_id', $userId);
 
-    $user = db_get_user(getPDO(), $userId);
+    $user = db_get_user(getPDO(true), $userId);
     if (!$user) {
         $response = FigResponseCookies::remove($response, 'user_id');
         return $response->withRedirect('/login', 303);
@@ -134,13 +144,13 @@ $app->get('/', function (Request $request, Response $response) {
 
 function list_channels_for_side_bar(): array
 {
-    $stmt = getPDO()->query("SELECT id, name FROM channel ORDER BY id");
+    $stmt = getPDO(true)->query("SELECT id, name FROM channel ORDER BY id");
     return $stmt->fetchall();
 }
 
 function get_channel_list_info(int $focusedChannelId): array
 {
-    $stmt = getPDO()->query("SELECT id, name, description FROM channel ORDER BY id");
+    $stmt = getPDO(true)->query("SELECT id, name, description FROM channel ORDER BY id");
     $channels = $stmt->fetchall();
     $description = "";
 
@@ -196,7 +206,7 @@ $app->get('/login', function (Request $request, Response $response) {
 $app->post('/login', function (Request $request, Response $response) {
     $name = $request->getParam('name');
     $password = $request->getParam('password');
-    $stmt = getPDO()->prepare("SELECT id, salt, password FROM user WHERE name = ?");
+    $stmt = getPDO(true)->prepare("SELECT id, salt, password FROM user WHERE name = ?");
     $stmt->execute([$name]);
     $user = $stmt->fetch();
     if (!$user || $user['password'] !== sha1(utf8_encode($user['salt'] . $password))) {
@@ -213,7 +223,7 @@ $app->get('/logout', function (Request $request, Response $response) {
 
 $app->post('/message', function (Request $request, Response $response) {
     $userId = FigRequestCookies::get($request, 'user_id')->getValue();
-    $user = db_get_user(getPDO(), $userId);
+    $user = db_get_user(getPDO(true), $userId);
     $message = $request->getParam('message');
     $channelId = (int)$request->getParam('channel_id');
     if (!$user || !$channelId || !$message) {
@@ -498,7 +508,7 @@ $app->get('/icons/{filename}', function (Request $request, Response $response) {
     }
     
     $filename = $request->getAttribute('filename');
-    $stmt = getPDO()->prepare("SELECT * FROM image WHERE name = ?");
+    $stmt = getPDO(true)->prepare("SELECT * FROM image WHERE name = ?");
     $stmt->execute([$filename]);
     $row = $stmt->fetch();
 
