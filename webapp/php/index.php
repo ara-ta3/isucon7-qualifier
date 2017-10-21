@@ -308,8 +308,6 @@ $app->get('/fetch', function (Request $request, Response $response) {
         return $response->withStatus(403);
     }
 
-    sleep(1);
-
     $dbh = getPDO();
     $stmt = $dbh->query('SELECT id FROM channel');
     $rows = $stmt->fetchall();
@@ -330,14 +328,14 @@ $app->get('/fetch', function (Request $request, Response $response) {
         if ($row) {
             $lastMessageId = $row['message_id'];
             $stmt = $dbh->prepare(
-                "SELECT COUNT(*) as cnt ".
+                "SELECT COUNT(1) as cnt ".
                 "FROM message ".
                 "WHERE channel_id = ? AND ? < id"
             );
             $stmt->execute([$channelId, $lastMessageId]);
         } else {
             $stmt = $dbh->prepare(
-                "SELECT COUNT(*) as cnt ".
+                "SELECT COUNT(1) as cnt ".
                 "FROM message ".
                 "WHERE channel_id = ?"
             );
