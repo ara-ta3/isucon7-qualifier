@@ -18,12 +18,12 @@ define("AVATAR_MAX_SIZE", 1 * 1024 * 1024);
 function getPDO($readOnly=false)
 {
     static $pdo = null;
-    if (!is_null($pdo)) {
-        return $pdo;
-    }
+    static $pdo_read_only = null;
 
-    $readOnly = false;  # 一時的に Slave を見ないようにする
     if ($readOnly) {
+      if (!is_null($pdo_read_only)) {
+          return $pdo_read_only;
+      }
       # Slave DB
       $host = '127.0.0.1';
       $port = '3306';
@@ -31,6 +31,9 @@ function getPDO($readOnly=false)
       $password = 'isucon';
       $dsn = "mysql:host={$host};port={$port};dbname=isubata;charset=utf8mb4";
     } else {
+      if (!is_null($pdo)) {
+          return $pdo;
+      }
       # Master DB
       $host = getenv('ISUBATA_DB_HOST') ?: 'localhost';
       $port = getenv('ISUBATA_DB_PORT') ?: '3306';
