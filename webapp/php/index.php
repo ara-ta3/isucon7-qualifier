@@ -242,29 +242,40 @@ $app->get('/message', function (Request $request, Response $response) {
     $channelId = $request->getParam('channel_id');
     $lastMessageId = $request->getParam('last_message_id');
     $dbh = getPDO();
-    $stmt = $dbh->prepare(
-        "SELECT * ".
-        "FROM message ".
-        "WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100"
-    );
+    $sql = <<< SQL
+SELECT 
+m.id AS id,
+m.user_id AS user_id,
+DATE_FORMAT(m.created_at, '%Y/%m/%d %H:%i:%S') AS `date`,
+m.content AS content,
+u.name AS user_name,
+u.display_name AS user_display_name,
+u.avatar_icon AS user_avatar_icon
+FROM message AS m
+JOIN user AS u ON u.id = m.user_id
+WHERE m.id > ? AND m.channel_id = ?
+ORDER BY m.id DESC LIMIT 100
+SQL;
+
+
+    $stmt = $dbh->prepare($sql);
     $stmt->execute([$lastMessageId, $channelId]);
     $rows = $stmt->fetchall();
-    $res = [];
-    foreach ($rows as $row) {
-        $r = [];
-        $r['id'] = (int)$row['id'];
-        $stmt = $dbh->prepare("SELECT name, display_name, avatar_icon FROM user WHERE id = ?");
-        $stmt->execute([$row['user_id']]);
-        $r['user'] = $stmt->fetch();
-        $r['date'] = str_replace('-', '/', $row['created_at']);
-        $r['content'] = $row['content'];
-        $res[] = $r;
-    }
-    $res = array_reverse($res);
-
+    $res = array_map(function(array $r) {
+        return [
+            'id' => $r['id'],
+            'content' => $r['content'],
+            'user' => [
+                'display_name' => $r['user_display_name'],
+                'name' => $r['name'],
+                'avatar_icon' => $r['avatar_icon'],
+            ],
+            'date' => $r['date'],
+        ];
+    }, $rows);
     $maxMessageId = 0;
-    foreach ($rows as $row) {
-        $maxMessageId = max($maxMessageId, $row['id']);
+    if (count($rows) > 0) {
+        $maxMessageId = max($maxMessageId, $rows[0]['id']);
     }
     $stmt = $dbh->prepare(
         "INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at) ".
