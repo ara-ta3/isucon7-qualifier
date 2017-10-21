@@ -66,9 +66,9 @@ $app->get('/initialize', function (Request $request, Response $response) {
     $response->withStatus(204);
 });
 
-function db_get_user($dbh, $userId)
+function db_get_user(PDO $dbh, $userId)
 {
-    $stmt = $dbh->prepare("SELECT * FROM user WHERE id = ?");
+    $stmt = $dbh->prepare("SELECT id, name, display_name FROM user WHERE id = ?");
     $stmt->execute([$userId]);
     return $stmt->fetch();
 }
@@ -94,7 +94,9 @@ $loginRequired = function (Request $request, Response $response, $next) use ($co
         return $response->withRedirect('/login', 303);
     }
 
+    // profileでidを使ってる
     $request = $request->withAttribute('user', $user);
+    // base.twigでname, display_nameを使ってる
     $container['view']->offsetSet('user', $user);
 
     $response = $next($request, $response);
