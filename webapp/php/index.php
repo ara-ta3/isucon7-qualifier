@@ -485,6 +485,10 @@ function ext2mime($ext)
 }
 
 $app->get('/icons/{filename}', function (Request $request, Response $response) {
+    if ($request->hasHeader('Accept')) {
+	return $response->withStatus(304);
+    }
+    
     $filename = $request->getAttribute('filename');
     $stmt = getPDO()->prepare("SELECT * FROM image WHERE name = ?");
     $stmt->execute([$filename]);
