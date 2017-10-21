@@ -524,7 +524,7 @@ $app->get('/icons/{filename}', function (Request $request, Response $response) {
     }
     
     $filename = $request->getAttribute('filename');
-    $stmt = getPDO(true)->prepare("SELECT * FROM image WHERE name = ?");
+    $stmt = getPDO()->prepare("SELECT * FROM image WHERE name = ?");
     $stmt->execute([$filename]);
     $row = $stmt->fetch();
 
