@@ -132,14 +132,20 @@ $app->get('/', function (Request $request, Response $response) {
     return $this->view->render($response, 'index.twig', []);
 });
 
-function get_channel_list_info($focusedChannelId = null)
+function list_channels_for_side_bar(): array
 {
-    $stmt = getPDO()->query("SELECT * FROM channel ORDER BY id");
+    $stmt = getPDO()->query("SELECT id, name FROM channel ORDER BY id");
+    return $stmt->fetchall();
+}
+
+function get_channel_list_info(int $focusedChannelId): array
+{
+    $stmt = getPDO()->query("SELECT id, name, description FROM channel ORDER BY id");
     $channels = $stmt->fetchall();
     $description = "";
 
     foreach ($channels as $channel) {
-        if ((int)$channel['id'] === (int)$focusedChannelId) {
+        if ((int)$channel['id'] === $focusedChannelId) {
             $description = $channel['description'];
             break;
         }
@@ -190,7 +196,7 @@ $app->get('/login', function (Request $request, Response $response) {
 $app->post('/login', function (Request $request, Response $response) {
     $name = $request->getParam('name');
     $password = $request->getParam('password');
-    $stmt = getPDO()->prepare("SELECT * FROM user WHERE name = ?");
+    $stmt = getPDO()->prepare("SELECT id, salt, password FROM user WHERE name = ?");
     $stmt->execute([$name]);
     $user = $stmt->fetch();
     if (!$user || $user['password'] !== sha1(utf8_encode($user['salt'] . $password))) {
@@ -318,7 +324,7 @@ $app->get('/history/{channel_id}', function (Request $request, Response $respons
     $page = (int)$page;
 
     $dbh = getPDO();
-    $stmt = $dbh->prepare("SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?");
+    $stmt = $dbh->prepare("SELECT COUNT(1) as cnt FROM message WHERE channel_id = ?");
     $stmt->execute([$channelId]);
     $cnt = (int)($stmt->fetch()['cnt']);
     $pageSize = 20;
@@ -353,7 +359,7 @@ $app->get('/history/{channel_id}', function (Request $request, Response $respons
     }
     $messages = array_reverse($messages);
 
-    list($channels, $description) = get_channel_list_info($channelId);
+    $channels = list_channels_for_side_bar();
     return $this->view->render(
         $response,
         'history.twig',
@@ -369,7 +375,7 @@ $app->get('/history/{channel_id}', function (Request $request, Response $respons
 
 $app->get('/profile/{user_name}', function (Request $request, Response $response) {
     $userName = $request->getAttribute('user_name');
-    list($channels, $_) = get_channel_list_info();
+    $channels = list_channels_for_side_bar();
 
     $stmt = getPDO()->prepare("SELECT * FROM user WHERE name = ?");
     $stmt->execute([$userName]);
@@ -391,7 +397,7 @@ $app->get('/profile/{user_name}', function (Request $request, Response $response
 })->add($loginRequired);
 
 $app->get('/add_channel', function (Request $request, Response $response) {
-    list($channels, $_) = get_channel_list_info();
+    $channels = list_channels_for_side_bar();
     return $this->view->render(
         $response,
         'add_channel.twig',
