@@ -485,7 +485,7 @@ function ext2mime($ext)
 }
 
 $app->get('/icons/{filename}', function (Request $request, Response $response) {
-    if ($request->hasHeader('Accept')) {
+    if ($request->hasHeader('If-Modified-Since')) {
 	return $response->withStatus(304);
     }
     
