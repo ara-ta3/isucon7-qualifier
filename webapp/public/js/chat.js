@@ -2,13 +2,13 @@ var last_message_id = 0
 
 function append(msg) {
     var text = msg["content"]
-    var name = msg["user"]["display_name"] + "@" + msg["user"]["name"]
+    var name = msg["user_display_name"] + "@" + msg["user_name"]
     var date = msg["date"]
-    var icon = msg["user"]["avatar_icon"]
+    var icon = msg["user_avatar_icon"]
     var p = $('<div class="media message"></div>')
 		var body = $('<div class="media-body">')
     $('<img class="avatar d-flex align-self-start mr-3" alt="no avatar">').attr('src', '/icons/'+icon).appendTo(p)
-    $('<h5 class="mt-0"></h5>').append($('<a></a>').attr('href', '/profile/'+msg["user"]["name"]).text(name)).appendTo(body)
+    $('<h5 class="mt-0"></h5>').append($('<a></a>').attr('href', '/profile/'+msg["user_name"]).text(name)).appendTo(body)
     $('<p class="content"></p>').text(text).appendTo(body)
     $('<p class="message-date"></p>').text(date).appendTo(body)
     body.appendTo(p)
