@@ -269,7 +269,7 @@ u.avatar_icon AS user_avatar_icon
 FROM message AS m
 JOIN user AS u ON u.id = m.user_id
 WHERE m.id > ? AND m.channel_id = ?
-ORDER BY m.id DESC
+ORDER BY m.id DESC LIMIT 100
 SQL;
 
 
