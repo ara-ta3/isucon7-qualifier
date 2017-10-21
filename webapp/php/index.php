@@ -22,7 +22,7 @@ function getPDO($readOnly=false)
         return $pdo;
     }
 
-    #$readOnly = false;  # 一時的に Slave を見ないようにする
+    $readOnly = false;  # 一時的に Slave を見ないようにする
     if ($readOnly) {
       # Slave DB
       $host = '127.0.0.1';
