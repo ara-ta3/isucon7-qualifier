@@ -190,7 +190,7 @@ $app->get('/login', function (Request $request, Response $response) {
 $app->post('/login', function (Request $request, Response $response) {
     $name = $request->getParam('name');
     $password = $request->getParam('password');
-    $stmt = getPDO()->prepare("SELECT * FROM user WHERE name = ?");
+    $stmt = getPDO()->prepare("SELECT id, salt, password FROM user WHERE name = ?");
     $stmt->execute([$name]);
     $user = $stmt->fetch();
     if (!$user || $user['password'] !== sha1(utf8_encode($user['salt'] . $password))) {
@@ -318,7 +318,7 @@ $app->get('/history/{channel_id}', function (Request $request, Response $respons
     $page = (int)$page;
 
     $dbh = getPDO();
-    $stmt = $dbh->prepare("SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?");
+    $stmt = $dbh->prepare("SELECT COUNT(1) as cnt FROM message WHERE channel_id = ?");
     $stmt->execute([$channelId]);
     $cnt = (int)($stmt->fetch()['cnt']);
     $pageSize = 20;
