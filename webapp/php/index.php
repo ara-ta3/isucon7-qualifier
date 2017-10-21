@@ -20,7 +20,6 @@ function getPDO($readOnly=false)
     static $pdo = null;
     static $pdo_read_only = null;
 
-    $readOnly = false; # 無効
     if ($readOnly) {
       if (!is_null($pdo_read_only)) {
           return $pdo_read_only;
@@ -149,13 +148,13 @@ $app->get('/', function (Request $request, Response $response) {
 
 function list_channels_for_side_bar(): array
 {
-    $stmt = getPDO(true)->query("SELECT id, name FROM channel ORDER BY id");
+    $stmt = getPDO()->query("SELECT id, name FROM channel ORDER BY id");
     return $stmt->fetchall();
 }
 
 function get_channel_list_info(int $focusedChannelId): array
 {
-    $stmt = getPDO(true)->query("SELECT id, name, description FROM channel ORDER BY id");
+    $stmt = getPDO()->query("SELECT id, name, description FROM channel ORDER BY id");
     $channels = $stmt->fetchall();
     $description = "";
 
@@ -228,7 +227,7 @@ $app->get('/logout', function (Request $request, Response $response) {
 
 $app->post('/message', function (Request $request, Response $response) {
     $userId = FigRequestCookies::get($request, 'user_id')->getValue();
-    $user = db_get_user(getPDO(true), $userId);
+    $user = db_get_user(getPDO(), $userId);
     $message = $request->getParam('message');
     $channelId = (int)$request->getParam('channel_id');
     if (!$user || !$channelId || !$message) {
