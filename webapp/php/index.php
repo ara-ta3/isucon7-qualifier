@@ -274,6 +274,7 @@ SQL;
             'content' => $r['content'],
         ];
     }, $rows);
+    $res = array_reverse($res);
     $maxMessageId = 0;
     if (count($rows) > 0) {
         $maxMessageId = max($maxMessageId, $rows[0]['id']);
