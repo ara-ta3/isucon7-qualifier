@@ -30,6 +30,17 @@ function getPDO($readOnly=false)
       $user = 'isucon';
       $password = 'isucon';
       $dsn = "mysql:host={$host};port={$port};dbname=isubata;charset=utf8mb4";
+      $pdo_read_only = new PDO(
+          $dsn,
+          $user,
+          $password,
+          [
+              PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+              PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+          ]
+      );
+      $pdo_read_only->query("SET SESSION sql_mode='TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY'");
+      return $pdo_read_only;
     } else {
       if (!is_null($pdo)) {
           return $pdo;
