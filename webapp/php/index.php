@@ -102,7 +102,7 @@ $loginRequired = function (Request $request, Response $response, $next) use ($co
     $request = $request->withAttribute('user_id', $userId);
     $container['view']->offsetSet('user_id', $userId);
 
-    $user = db_get_user(getPDO(true), $userId);
+    $user = db_get_user(getPDO(), $userId);
     if (!$user) {
         $response = FigResponseCookies::remove($response, 'user_id');
         return $response->withRedirect('/login', 303);
